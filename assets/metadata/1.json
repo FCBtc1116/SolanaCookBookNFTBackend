@@ -1,0 +1,18 @@
+{
+    "name": "Custom NFT #1",
+    "symbol": "CNFT",
+    "description":
+      "A description about my custom NFT #1",
+    "seller_fee_basis_points": 100,
+    "external_url": "https://www.customnft.com/",
+    "attributes": [
+        {
+            "trait_type": "NFT type",
+            "value": "Custom"
+        }
+    ],
+    "collection": {
+      "name": "Test Collection",
+      "family": "Custom NFTs"
+    }
+}
