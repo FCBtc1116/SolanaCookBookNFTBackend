@@ -1,8 +1,13 @@
 {
   "dependencies": {
-    "app-root-path": "^3.0.0",
-    "buffer-layout": "^1.2.2",
+    "@bundlr-network/client": "^0.7.4",
+    "@metaplex-foundation/mpl-token-metadata": "^2.1.1",
+    "@metaplex/js": "^4.12.0",
+    "@solana/web3.js": "^1.41.4",
     "@types/mocha": "^9.0.0",
+    "app-root-path": "^3.0.0",
+    "arweave": "^1.10.23",
+    "buffer-layout": "^1.2.2",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.2",
