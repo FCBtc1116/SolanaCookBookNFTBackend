@@ -6,8 +6,8 @@ import Bundlr from "@bundlr-network/client"
 import key from "./assets/key.json";
 import { actions, NodeWallet, Wallet } from '@metaplex/js';
 import { Metadata } from '@metaplex-foundation/mpl-token-metadata';
-import { Keypair, SystemProgram, Transaction, Connection, PublicKey, sendAndConfirmTransaction, clusterApiUrl } from '@solana/web3.js';
-import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { Keypair, SystemProgram, Transaction, Connection, PublicKey, sendAndConfirmTransaction, clusterApiUrl, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount,mintTo,setAuthority,transfer, createAssociatedTokenAccount } from '@solana/spl-token';
 
 require('dotenv').config()
 
@@ -76,6 +76,14 @@ app.get("/mintNFTData", async function (req, res) {
     console.log(videoUrl);
 
     const connection = new Connection("https://api.devnet.solana.com");
+
+    const fromAirdropSignature = await connection.requestAirdrop(
+      keypair.publicKey,
+      LAMPORTS_PER_SOL
+    );
+
+    // Wait for airdrop confirmation
+    await connection.confirmTransaction(fromAirdropSignature);
   
     //Step1. Mint NFT
     const mintNFTResponse = await actions.mintNFT({
@@ -87,57 +95,31 @@ app.get("/mintNFTData", async function (req, res) {
     console.log(`${i} NFTs are minted ${mintNFTResponse.mint.toBase58()}`);
 
     // step 2. create associated account to user
-    let ata = await Token.getAssociatedTokenAddress(
-      ASSOCIATED_TOKEN_PROGRAM_ID, // always ASSOCIATED_TOKEN_PROGRAM_ID
-      TOKEN_PROGRAM_ID, // always TOKEN_PROGRAM_ID
-      mintNFTResponse.mint, // mint
-      keypair.publicKey // owner
-    );
-    console.log(`ATA: ${ata.toBase58()}`);
-    console.log(keypair.publicKey.toBase58());
-    let tx = new Transaction().add(
-      Token.createAssociatedTokenAccountInstruction(
-        ASSOCIATED_TOKEN_PROGRAM_ID, // always ASSOCIATED_TOKEN_PROGRAM_ID
-        TOKEN_PROGRAM_ID, // always TOKEN_PROGRAM_ID
-        mintNFTResponse.mint, // mint
-        ata, // ata
-        keypair.publicKey, // owner of token account
-        keypair.publicKey // fee payer
-      )
-    );
-    await (new Promise(resolve => setTimeout(resolve, 20000)));
-    console.log(tx.instructions);
-    let rlt = await connection.sendTransaction(tx, [keypair]);
-    console.log(rlt);
-
-    // step 3. send NFT to user
-    // Add token transfer instructions to transaction
-    let fromTokenAccount = await Token.getAssociatedTokenAddress(
-      ASSOCIATED_TOKEN_PROGRAM_ID, // always ASSOCIATED_TOKEN_PROGRAM_ID
-      TOKEN_PROGRAM_ID, // always TOKEN_PROGRAM_ID
-      mintNFTResponse.mint, // mint
-      keypair.publicKey // owner
-    );
-    let toTokenAccount = ata;
-    await (new Promise(resolve => setTimeout(resolve, 20000)));
-    const transaction = new Transaction().add(
-      Token.createTransferInstruction(
-        TOKEN_PROGRAM_ID,
-        fromTokenAccount,
-        toTokenAccount,
-        keypair.publicKey,
-        [],
-        1,
-      ),
-    );
-
-    // Sign transaction, broadcast, and confirm
-    let finalResult = await sendAndConfirmTransaction(
+    let ata = await createAssociatedTokenAccount(
       connection,
-      transaction,
-      [keypair]
+      keypair,
+      mintNFTResponse.mint,
+      keypair.publicKey
     );
-    console.log("finalResult", finalResult);
+    console.log(`ATA: ${ata}`);
+    console.log(keypair.publicKey.toBase58());
+    // let signature = await mintTo(
+    //   connection,
+    //   keypair,               // Payer of the transaction fees 
+    //   mintNFTResponse.mint,   // Mint for the account 
+    //   ata.address,           // Address of the account to mint to 
+    //   keypair.publicKey,     // Minting authority
+    //   1                         // Amount to mint 
+    // );
+    // await setAuthority(
+    //   connection,
+    //   keypair,            // Payer of the transaction fees
+    //   mintNFTResponse.mint,                  // Account 
+    //   keypair.publicKey,  // Current authority 
+    //   0,                     // Authority type: "0" represents Mint Tokens 
+    //   null                   // Setting the new Authority to null
+    // );
+    // console.log(signature);
   
   }
   res.json(true);

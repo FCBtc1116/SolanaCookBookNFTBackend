@@ -6,6 +6,12 @@
     "target": "es2017",
     "module": "commonjs",
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": "./node_modules",
+    "paths": {
+      "name-of-the-package": [
+        "relative-to-baseurl/position/where/yow-code-is"
+      ]
+    }
   }
 }
