@@ -7,7 +7,7 @@ import key from "./assets/key.json";
 import { actions, NodeWallet, Wallet } from '@metaplex/js';
 import { Metadata } from '@metaplex-foundation/mpl-token-metadata';
 import { Keypair, SystemProgram, Transaction, Connection, PublicKey, sendAndConfirmTransaction, clusterApiUrl, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount,mintTo,setAuthority,transfer, createAssociatedTokenAccount } from '@solana/spl-token';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount,mintTo,setAuthority,transfer, createAssociatedTokenAccount,getAssociatedTokenAddress } from '@solana/spl-token';
 
 require('dotenv').config()
 
@@ -30,9 +30,9 @@ app.get("/mintNFTData", async function (req, res) {
     console.log(i+"th mint");
 
     await bundlr.fund(100_000_000);
-    const tags = [{name: "Content-Type", value: "image/png"}];
+    const tags = [{name: "Content-Type", value: "video/mp4"}];
 
-    const bundltransaction = await bundlr.createTransaction(fs.readFileSync(`./assets/metadata/${i + 1}.png`), {tags : tags});
+    const bundltransaction = await bundlr.createTransaction(fs.readFileSync(`./assets/metadata/${i + 1}.mp4`), {tags : tags});
     
     await bundltransaction.sign();
     await bundltransaction.upload();
@@ -47,10 +47,10 @@ app.get("/mintNFTData", async function (req, res) {
       files: [
         {
           uri: videoUrl,
-          type: "image/png",
+          type: "video/mp4",
         },
       ],
-      category: "png",
+      category: "mp4",
       maxSupply: 0,
       creators: [
         {
@@ -95,9 +95,7 @@ app.get("/mintNFTData", async function (req, res) {
     console.log(`${i} NFTs are minted ${mintNFTResponse.mint.toBase58()}`);
 
     // step 2. create associated account to user
-    let ata = await createAssociatedTokenAccount(
-      connection,
-      keypair,
+    let ata = await getAssociatedTokenAddress(
       mintNFTResponse.mint,
       keypair.publicKey
     );
